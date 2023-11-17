@@ -1,0 +1,22 @@
+# Use the .NET Core SDK image to build the project
+FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
+
+WORKDIR /src
+COPY dot_net_csvgen/CsvGenerator.csproj ./dot_net_csvgen/
+RUN dotnet restore "./dot_net_csvgen/CsvGenerator.csproj"
+
+# Copy the rest of your app's source code
+COPY dot_net_csvgen/ ./dot_net_csvgen/
+
+# Build the application
+RUN dotnet publish "./dot_net_csvgen/" -c Release -o /app/publish
+
+# Use the .NET Core runtime image to run the application
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1 AS final
+
+WORKDIR /app
+COPY --from=build /app/publish .
+
+#CMD ["dotnet", "CsvGenerator.dll"]
+ENTRYPOINT ["dotnet", "CsvGenerator.dll"]
+#ENTRYPOINT ["tail", "-f", "/dev/null"]

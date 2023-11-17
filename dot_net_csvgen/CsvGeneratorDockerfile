@@ -1,0 +1,21 @@
+
+# Use the official image as a parent image
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the project file
+COPY dot_net_csvgen/CsvGenerator.csproj ./dot_net_csvgen/
+
+# Restore dependencies
+RUN dotnet restore dot_net_csvgen/CsvGenerator.csproj
+
+# Copy the rest of your app's source code
+COPY dot_net_csvgen/ ./dot_net_csvgen/
+
+# Build the application
+RUN dotnet publish dot_net_csvgen/ -c Release -o out
+
+# Run the application
+CMD ["dotnet", "/app/out/CsvGenerator.dll"]
