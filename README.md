@@ -1,6 +1,6 @@
 ## Visual Overview
 
-![Depdendencies](artifacts/images/time_comparison_sequence.png)
+
 
 ## System Requirements
 
