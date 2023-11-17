@@ -3,6 +3,7 @@
 # Name of the Docker image and container
 IMAGE_NAME="spark_pyspark_jupyter"
 CONTAINER_NAME="spark_pyspark_jupyter"
+DOCKERFILE_PATH="Dockerpyspark"
 
 # Function to check if a Docker image exists
 check_image_exists() {
@@ -24,7 +25,7 @@ check_and_remove_container() {
 
 # Function to build a Docker image
 build_image() {
-    docker build -t $IMAGE_NAME .
+    docker build -f $DOCKERFILE_PATH -t $CONTAINER_NAME .
 }
 
 # Function to run the Docker container
@@ -84,9 +85,22 @@ while true; do
     echo "*********************************"
     read -p "Do you wish to exit? [y/n]:" yn
     case $yn in
-        [Yy]* ) echo "Exiting..."; docker stop $CONTAINER_NAME; exit;;
+        [Yy]* ) echo "Exiting..."; docker stop $CONTAINER_NAME; break;;
         [Nn]* ) echo "Continuing..."; break;;
         * ) echo "Please answer 'y' or 'n'.";;
     esac
 done
 
+
+# if [[ "$do_exit" -eq 1 ]]
+# then
+
+# echo "*********************************"
+# echo "*                               *"
+# echo "*        exiting                *"
+# echo "*                               *"
+# echo "*********************************"
+#     docker stop $CONTAINER_NAME
+#     docker rm $CONTAINER_NAME
+
+# fi
