@@ -55,7 +55,8 @@ echo "*******************************"
 if [ $duration_python -gt $duration_csharp ]; then
     time_delta=$((duration_python - duration_csharp))
     echo "*******************************"
-    echo "Python Data Generation process took $(convert_to_min_sec $time_delta) longer than the C# Data Generation process."
+    echo "Python Data Generation process took $(convert_to_min_sec $time_delta)"
+    echo "longer than the C# Data Generation process."
     echo "*******************************"
 elif [ $duration_csharp -gt $duration_python ]; then
     time_delta=$((duration_csharp - duration_python))
