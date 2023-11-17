@@ -1,0 +1,16 @@
+FROM python:3.10-slim AS build
+ARG APP_DIR=/launch
+
+# Install Python 3.10
+RUN apt-get update && \
+    apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Codon from GitHub
+RUN /bin/bash -c "$(curl -fsSL https://exaloop.io/install.sh)"
+
+WORKDIR ${APP_DIR}/
+COPY  ./gen_random_data.py ./
+
+ENTRYPOINT ["tail", "-f", "/dev/null"]
