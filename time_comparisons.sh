@@ -36,6 +36,7 @@ echo "Starting C# Data Generation process..."
 echo "*******************************"
 start_time_csharp=$(current_time_s)
 # Command for the C# data generation process goes here
+#echo "docker run --name ${IMAGE_NAME} -v "${PWD}/out":/app/publish ${CONTAINER_NAME}"
 docker run --name $IMAGE_NAME -v "$PWD/out":/app/publish $CONTAINER_NAME
 end_time_csharp=$(current_time_s)
 
@@ -59,7 +60,9 @@ if [ $duration_python -gt $duration_csharp ]; then
 elif [ $duration_csharp -gt $duration_python ]; then
     time_delta=$((duration_csharp - duration_python))
     echo "*******************************"
-    echo "C# Data Generation process took $(convert_to_min_sec $time_delta) longer than the Python Data Generation process."
+    echo "C# Data Generation process took $(convert_to_min_sec $time_delta) "
+    echo ""
+    echo "longer than the Python Data Generation process."
     echo "*******************************"
 else
     echo "Both processes took the same amount of time."
