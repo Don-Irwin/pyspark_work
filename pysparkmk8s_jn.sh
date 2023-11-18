@@ -1,5 +1,12 @@
 #!/bin/bash
 
+source ./check_deps.sh
+
+if [ $all_deps -eq 0 ]; then
+echo ""
+return
+fi
+
 # Define the port number
 PORT="8888"
 
@@ -34,26 +41,19 @@ microk8s kubectl delete pod $CONTAINER_NAME
 export CONTAINER_NAME="spark-pyspark-jupyter"
 export IMAGE_NAME="spark-pyspark-jupyter"
 export HOST_VOLUME_PATH=$(pwd)  # Host volume path
+NAMESPACE="pyspark-work"
+export NAMESPACE=$NAMESPACE
 
-# Create Pod Template
-POD_TEMPLATE='apiVersion: v1
-kind: Pod
-metadata:
-  name: $CONTAINER_NAME
-spec:
-  containers:
-  - name: $CONTAINER_NAME
-    image: localhost:32000/$IMAGE_NAME
-    ports:
-    - containerPort: 8888
-    volumeMounts:
-    - name: host-volume
-      mountPath: /workspace
-  volumes:
-  - name: host-volume
-    hostPath:
-      path: $HOST_VOLUME_PATH
-      type: Directory'
+
+# Path to the deploy directory
+DEPLOY_DIR="$(pwd)/deploys"
+
+# Path to the pod template
+POD_TEMPLATE_DIR="$DEPLOY_DIR/templates"
+
+# Path to the final pod definition
+POD_DEFINITION_FILE="$DEPLOY_DIR/pyspark-work-spark-jn.yml"
+
 
 
 # Function to check if a Docker image exists in MicroK8s registry
@@ -74,30 +74,53 @@ build_image() {
 
 # Function to deploy to MicroK8s and set up port forwarding
 deploy_to_microk8s() {
-    # Substitute environment variables and create a pod definition
-    echo "$POD_TEMPLATE" | envsubst > pod-definition.yml
-    #cat pod-definition.yml  # Add this line for debugging
 
+    # Deploy the pods
+    source $(pwd)/deploys/apply-deploys.sh
+    
 
-    # Deploy the pod
-    microk8s kubectl apply -f pod-definition.yml
-
-    # Wait for the pod to be in the 'Running' state
-    echo "Waiting for pod $CONTAINER_NAME to be up..."
+    # Wait for all pods in the namespace to be in the 'Running' state
+    echo "Waiting for all pods in the $NAMESPACE namespace to be up..."
     while true; do
-        POD_STATUS=$(microk8s kubectl get pod $CONTAINER_NAME -o=jsonpath='{.status.phase}')
-        if [ "$POD_STATUS" == "Running" ]; then
-            echo "Pod $CONTAINER_NAME is running."
+        # Get the status of all pods in the namespace
+        POD_STATUSES=$(microk8s kubectl get pods -n $NAMESPACE -o=jsonpath='{.items[*].status.phase}')
+
+        # Check if all pods are running
+        ALL_RUNNING=true
+        for STATUS in $POD_STATUSES; do
+            if [ "$STATUS" != "Running" ]; then
+                ALL_RUNNING=false
+                break
+            fi
+        done
+
+        if $ALL_RUNNING; then
+            echo "All pods in the $NAMESPACE namespace are running."
             break
         else
-            echo "Waiting for pod $CONTAINER_NAME to be up... Current status: $POD_STATUS"
+            echo "Waiting for all pods in the $NAMESPACE namespace to be up..."
             sleep 5
         fi
     done
 
+    echo "setting up port forwarding"
     # Set up port forwarding
-    microk8s kubectl port-forward pod/$CONTAINER_NAME 8888:8888 >/dev/null 2>&1 &
+    microk8s kubectl port-forward pod/$CONTAINER_NAME 8888:8888 -n $NAMESPACE >/dev/null 2>&1 &
+
+    forward_status=$?
+
+    echo "forward_status =$forward_status"
+
+
+
 }
+
+# Function to build and push a Docker image to MicroK8s registry
+teardown_deploy() {
+    docker build -f $DOCKERFILE_PATH -t localhost:32000/$IMAGE_NAME .
+    docker push localhost:32000/$IMAGE_NAME
+}
+
 
 # Main script logic
 if check_image_exists; then
@@ -142,7 +165,7 @@ while ! $finished; do
 done
 
 # List pods containing container name
-microk8s kubectl get pods | grep $CONTAINER_NAME
+microk8s kubectl get pods -n $NAMESPACE | grep $CONTAINER_NAME
 
 while true; do
     echo "*********************************"
@@ -153,7 +176,7 @@ while true; do
     echo "*********************************"
     read -p "Do you wish to exit? [y/n]:" yn
     case $yn in
-        [Yy]* ) echo "Exiting..."; microk8s kubectl delete pod $CONTAINER_NAME; break;;
+        [Yy]* ) echo "Exiting..."; teardown_deploy ; break;;
         [Nn]* ) echo "Continuing..."; break;;
         * ) echo "Please answer 'y' or 'n'.";;
     esac
@@ -162,4 +185,5 @@ done
 sudo chmod -R 777 ./
 
 # List pods containing container name
-microk8s kubectl get pods | grep $CONTAINER_NAME
+microk8s kubectl get pods -n $NAMESPACE | grep $CONTAINER_NAME
+

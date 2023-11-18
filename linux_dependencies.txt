@@ -1,0 +1,6 @@
+docker ps
+microk8s status
+lsof -?
+curl --help
+grep --help
+envsubst --help

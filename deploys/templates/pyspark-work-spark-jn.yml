@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: $CONTAINER_NAME
+  namespace: $NAMESPACE
+spec:
+  containers:
+  - name: $CONTAINER_NAME
+    image: localhost:32000/$IMAGE_NAME
+    ports:
+    - containerPort: 8888
+    volumeMounts:
+    - name: host-volume
+      mountPath: /workspace
+  volumes:
+  - name: host-volume
+    hostPath:
+      path: $HOST_VOLUME_PATH
+      type: Directory
