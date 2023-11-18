@@ -1,3 +1,7 @@
+## How Slow is Python? Is "everything Microsoft" bad?
+
+
+- [How Slow is Python? Is "everything Microsoft" bad?](#how-slow-is-python-is-everything-microsoft-bad)
 - [Visual Overview](#visual-overview)
 - [The Task](#the-task)
 - [System Requirements](#system-requirements)
