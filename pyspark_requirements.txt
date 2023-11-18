@@ -1,0 +1,6 @@
+pandas
+pandasql
+altair
+matplotlib
+sympy
+pyodbc

@@ -17,6 +17,7 @@ FROM mcr.microsoft.com/dotnet/core/runtime:3.1 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
+
 #CMD ["dotnet", "CsvGenerator.dll"]
 ENTRYPOINT ["dotnet", "CsvGenerator.dll"]
 #ENTRYPOINT ["tail", "-f", "/dev/null"]

@@ -91,16 +91,6 @@ while true; do
     esac
 done
 
+sudo chmod -R 777 ./
 
-# if [[ "$do_exit" -eq 1 ]]
-# then
-
-# echo "*********************************"
-# echo "*                               *"
-# echo "*        exiting                *"
-# echo "*                               *"
-# echo "*********************************"
-#     docker stop $CONTAINER_NAME
-#     docker rm $CONTAINER_NAME
-
-# fi
+#microk8s kubectl get pods | grep $CONTAINER_NAME

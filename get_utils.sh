@@ -29,3 +29,5 @@ main() {
 
 # Execute the main function
 main
+
+ln -sfT $SUBMODULE_PATH $(pwd)/libraries

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-pyspark-jupyter
+spec:
+  containers:
+  - name: spark-pyspark-jupyter
+    image: localhost:32000/spark-pyspark-jupyter
+    ports:
+    - containerPort: 8888
+    volumeMounts:
+    - name: host-volume
+      mountPath: /workspace
+  volumes:
+  - name: host-volume
+    hostPath:
+      path: /data/pyspark_work
+      type: Directory
