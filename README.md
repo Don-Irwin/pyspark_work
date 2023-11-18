@@ -36,10 +36,8 @@ The python code takes **more than three times** as long to complete compared to 
 
 This test is simple.  More complicated identical tasks I have run, show that the time delta between the two languages is even more extreme.  I.E. generating thousands of Excel documents may take 3 hours or more in Python, while it may take 5-10 minutes in C#.
 
-## The Sequence
+## Running it From Scratch
 
-With this very simple project, we generate a data file that is 1GB large with Python
-
-We then generate the exact same data file using C# (Running within a docker container so as not to complicate our systems deployments).
-
-
+```
+git clone https://github.com/Don-Irwin/pyspark_work && cd pyspark_work && . time_comparisons.sh
+```
