@@ -2,9 +2,17 @@
 
 ![Depdendencies](artifacts/images/time_comparison_sequence.png)
 
+## The Task
+
+Generate a 1GB data file in native python (no special libraries).   
+
+Generate the exact same 1GB data file in C# (.Net Core).    
+
+Compare the results.
+
 ## System Requirements
 
-Linux/Ubutu, Bash, Python, Docker, .Net Core (C#)
+Linux (Tested on Ubutu), Bash, Python, Docker, .Net Core (C#)
 
 ![Depdendencies](artifacts/images/dependencies.png)
 
