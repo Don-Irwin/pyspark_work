@@ -38,6 +38,14 @@ This test is simple.  More complicated identical tasks I have run, show that the
 
 ## Running it From Scratch
 
+The command bellow should work provided all system requirements are installed.
+
 ```
 git clone https://github.com/Don-Irwin/pyspark_work && cd pyspark_work && . time_comparisons.sh
 ```
+
+## Sample Output:
+
+
+![Depdendencies](artifacts/images/time_results.png)
+
