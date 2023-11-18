@@ -1,3 +1,12 @@
+- [Visual Overview](#visual-overview)
+- [The Task](#the-task)
+- [System Requirements](#system-requirements)
+- [Background -- How slow is Python, and is "everything Microsoft" bad?](#background----how-slow-is-python-and-is-everything-microsoft-bad)
+- [The Punchline](#the-punchline)
+- [Running it From Scratch](#running-it-from-scratch)
+- [Sample Output:](#sample-output)
+
+
 ## Visual Overview
 
 ![Depdendencies](artifacts/images/time_comparison_sequence.png)
