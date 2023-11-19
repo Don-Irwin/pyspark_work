@@ -117,8 +117,7 @@ deploy_to_microk8s() {
 
 # Function to build and push a Docker image to MicroK8s registry
 teardown_deploy() {
-    docker build -f $DOCKERFILE_PATH -t localhost:32000/$IMAGE_NAME .
-    docker push localhost:32000/$IMAGE_NAME
+    source ./deploys/remove-deploys.sh
 }
 
 
@@ -164,14 +163,14 @@ while ! $finished; do
     fi
 done
 
-# List pods containing container name
-microk8s kubectl get pods -n $NAMESPACE | grep $CONTAINER_NAME
+# List pods in our namespace
+microk8s kubectl get pods -n $NAMESPACE 
 
 while true; do
     echo "*********************************"
     echo "*                               *"
     echo "*    Do you wish to exit?       *"
-    echo "* (this will shut down Jupyter) *"
+    echo "* (this will shut down Pyspark in Jupyter) *"
     echo "*                               *"
     echo "*********************************"
     read -p "Do you wish to exit? [y/n]:" yn
@@ -184,6 +183,6 @@ done
 
 sudo chmod -R 777 ./
 
-# List pods containing container name
-microk8s kubectl get pods -n $NAMESPACE | grep $CONTAINER_NAME
+# List pods in our namespace
+microk8s kubectl get pods -n $NAMESPACE 
 
