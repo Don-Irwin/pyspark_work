@@ -10,6 +10,7 @@ fi
 # Define the port number
 PORT="8888"
 
+kill_port_forwarding() {
 # Find the PID of the process using the specified port
 PID=$(sudo lsof -t -i:$PORT)
 
@@ -27,6 +28,8 @@ if [ ! -z "$PID" ]; then
 else
     echo "No process found running on port $PORT."
 fi
+
+}
 
 # Name of the Docker image and container
 IMAGE_NAME="spark-pyspark-jupyter"
@@ -105,7 +108,7 @@ deploy_to_microk8s() {
 
     echo "setting up port forwarding"
     # Set up port forwarding
-    microk8s kubectl port-forward pod/$CONTAINER_NAME 8888:8888 -n $NAMESPACE >/dev/null 2>&1 &
+    microk8s kubectl port-forward pod/$CONTAINER_NAME $PORT:$PORT -n $NAMESPACE >/dev/null 2>&1 &
 
     forward_status=$?
 
@@ -122,6 +125,9 @@ teardown_deploy() {
 
 
 # Main script logic
+
+kill_port_forwarding
+
 if check_image_exists; then
     while true; do
         echo "*********************************"
@@ -146,8 +152,52 @@ fi
 echo ""
 echo "*********************************"
 echo "* Waiting for Jupyter to come up:"
-echo "* http://127.0.0.1:8888          *"
+echo "* http://127.0.0.1:$PORT          *"
 echo "*********************************"
+
+finished=false
+while ! $finished; do
+    response_code=$(curl -o /dev/null -s -w "%{http_code}\n" -X GET "http://127.0.0.1:$PORT/tree?")
+    if [ "$response_code" -eq 200 ]; then
+        finished=true
+        echo "*********************************"
+        echo "* Jupyter is ready:             *"
+        echo "* http://127.0.0.1:$PORT/tree?   *"
+        echo "*********************************"
+    else
+        finished=false
+    fi
+done
+
+# List pods in our namespace
+microk8s kubectl get pods -n $NAMESPACE 
+echo "*********************************"
+echo "microk8s kubectl get pods -n $NAMESPACE "
+echo "*********************************"
+
+while true; do
+    echo "*********************************"
+    echo "*                               *"
+    echo "*    Do you wish to exit?       *"
+    echo "* (this will shut down Pyspark in Jupyter) *"
+    echo "*                               *"
+    echo "*********************************"
+    read -p "Do you wish to exit? [y/n]:" yn
+    case $yn in
+        [Yy]* ) echo "Exiting..."; teardown_deploy ; kill_port_forwarding; break;;
+        [Nn]* ) echo "Continuing..."; break;;
+        * ) echo "Please answer 'y' or 'n'.";;
+    esac
+done
+
+sleep 2
+#run the spark submit job
+time kubectl exec -it -n $NAMESPACE $CONTAINER_NAME bash spark-submit spark_submit.py
+
+echo "***************************"
+echo "finished"
+echo "time kubectl exec -it -n $NAMESPACE $CONTAINER_NAME bash spark-submit spark_submit.py"
+echo "***************************"
 
 finished=false
 while ! $finished; do
@@ -163,23 +213,21 @@ while ! $finished; do
     fi
 done
 
-# List pods in our namespace
-microk8s kubectl get pods -n $NAMESPACE 
-
-while true; do
-    echo "*********************************"
-    echo "*                               *"
-    echo "*    Do you wish to exit?       *"
-    echo "* (this will shut down Pyspark in Jupyter) *"
-    echo "*                               *"
-    echo "*********************************"
-    read -p "Do you wish to exit? [y/n]:" yn
-    case $yn in
-        [Yy]* ) echo "Exiting..."; teardown_deploy ; break;;
-        [Nn]* ) echo "Continuing..."; break;;
-        * ) echo "Please answer 'y' or 'n'.";;
-    esac
+finished=false
+while ! $finished; do
+    response_code=$(curl -o /dev/null -s -w "%{http_code}\n" -X GET "http://127.0.0.1:18080")
+    if [ "$response_code" -eq 200 ]; then
+        finished=true
+        echo "*********************************"
+        echo "* Log Server is Live:           *"
+        echo "* http://127.0.0.1:18080        *"
+        echo "*********************************"
+    else
+        finished=false
+    fi
 done
+
+
 
 sudo chmod -R 777 ./
 

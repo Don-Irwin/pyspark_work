@@ -41,3 +41,8 @@ COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
 CMD ["/bin/bash", "/start.sh"]
+
+#/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+# Start Jupyter Notebook as the default command
+#CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
+
