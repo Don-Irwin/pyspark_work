@@ -3,8 +3,27 @@ FROM openjdk:11-jre-slim
 
 # Install Python and necessary utilities
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip wget tree unixodbc unixodbc-dev libpostgresql-jdbc-java libmysql-java && \
+    apt-get install -y python3 python3-pip wget tree unixodbc unixodbc-dev libpostgresql-jdbc-java zstd sudo dpkg && \
+    apt-get upgrade -y && \
     apt-get clean;
+
+# Set the working directory in the container
+WORKDIR /workspace
+
+# Create a directory for JDBC drivers
+RUN mkdir -p /opt/jdbc_drivers
+
+# Download JDBC Drivers for MSSQL, MySQL
+RUN wget -O sqljdbc_12.4.2.0_enu.tar.gz https://go.microsoft.com/fwlink/?linkid=2247860
+RUN tar xzf sqljdbc_12.4.2.0_enu.tar.gz
+RUN mv sqljdbc_12.4.2.0_enu.tar.gz /opt/jdbc_drivers
+#RUN rm sqljdbc_12.4.2.0_enu.tar.gz 
+#MYSQL
+COPY /mysql-connector-j_8.2.0-1ubuntu22.04_all_repacked.deb .
+RUN dpkg -i --force-overwrite mysql-connector-j_8.2.0-1ubuntu22.04_all_repacked.deb
+RUN rm mysql-connector-j_8.2.0-1ubuntu22.04_all_repacked.deb
+
+RUN apt-get clean
 
 # Set environment variables for Spark
 ENV SPARK_VERSION=3.5.0
@@ -14,14 +33,6 @@ ENV PATH=$PATH:$SPARK_HOME/bin
 ENV SPARK_HISTORY_OPTS="-Dspark.history.ui.port=18080 -Dspark.eventLog.enabled=true -Dspark.eventLog.dir=/tmp/spark-events"
 ENV SPARK_NO_DAEMONIZE=TRUE
 
-# Create a directory for JDBC drivers
-RUN mkdir -p /opt/jdbc_drivers
-
-# Download JDBC Drivers for MSSQL, MySQL, and PostgreSQL
-RUN wget -O sqljdbc_12.4.2.0_enu.tar.gz https://go.microsoft.com/fwlink/?linkid=2247860
-RUN tar xzf sqljdbc_12.4.2.0_enu.tar.gz
-RUN mv sqljdbc_12.4.2.0_enu.tar.gz /opt/jdbc_drivers
-RUN rm sqljdbc_12.4.2.0_enu.tar.gz 
 
 # Setup Spark
 RUN mkdir -p /tmp/spark-events
@@ -39,8 +50,6 @@ EXPOSE 8888
 EXPOSE 4040
 EXPOSE 18080
 
-# Set the working directory in the container
-WORKDIR /workspace
 COPY /pyspark_requirements.txt .
 RUN pip install -r pyspark_requirements.txt
 
