@@ -30,3 +30,5 @@ echo "Running the file generator"
 time docker run --name $IMAGE_NAME -v "$PWD/out":/app/publish $CONTAINER_NAME
 echo "Finished running the file generator"
 echo "*******************************"
+
+sudo chmod 777 -R ./out
