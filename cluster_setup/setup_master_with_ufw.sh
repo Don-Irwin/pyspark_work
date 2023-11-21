@@ -222,9 +222,11 @@ echo "*************************************"
 echo "********************************"
 echo "Opening up the chrome tabs"
 echo "********************************"
+
 # URLs to open
 URL1="http://localhost:8080"
 URL2="http://localhost:18080"
+URL3="http://localhost:4040"
 
 # Open URLs in new tabs in Google Chrome
-google-chrome "$URL1" "$URL2" &
+google-chrome "$URL1" "$URL2" "$URL3" &
