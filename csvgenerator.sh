@@ -25,8 +25,8 @@ else
     echo "*******************************"    
 fi
 
-# echo "*******************************"
-# echo "Running the file generator"
-# time docker run --name $IMAGE_NAME -v "$PWD/out":/app/publish $CONTAINER_NAME
-# echo "Finished running the file generator"
-# echo "*******************************"
+echo "*******************************"
+echo "Running the file generator"
+time docker run --name $IMAGE_NAME -v "$PWD/out":/app/publish $CONTAINER_NAME
+echo "Finished running the file generator"
+echo "*******************************"

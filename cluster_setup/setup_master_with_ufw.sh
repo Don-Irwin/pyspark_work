@@ -29,6 +29,10 @@ echo "$NFS_SHARE_DIR $NETWORK_RANGE(rw,sync,no_root_squash,no_subtree_check)" | 
 sudo exportfs -ra
 sudo systemctl restart nfs-kernel-server
 
+# Remove droppings of files in place
+sudo rm $NFS_SHARE_DIR/worker*.txt
+
+
 echo "stopping"
 echo "/spark/sbin/stop-master.sh"
 /spark/sbin/stop-master.sh
@@ -213,3 +217,14 @@ ansible-playbook -i hosts setup_spark_playbook.yml
 echo "*************************************"
 echo "completed"
 echo "*************************************"
+
+#!/bin/bash
+echo "********************************"
+echo "Opening up the chrome tabs"
+echo "********************************"
+# URLs to open
+URL1="http://localhost:8080"
+URL2="http://localhost:18080"
+
+# Open URLs in new tabs in Google Chrome
+google-chrome "$URL1" "$URL2" &
