@@ -1,9 +1,9 @@
 # Start from OpenJDK base image
 FROM openjdk:11-jre-slim
 
-# Install Python
+# Install Python and necessary utilities
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip wget tree unixodbc unixodbc-dev && \
+    apt-get install -y python3 python3-pip wget tree unixodbc unixodbc-dev libpostgresql-jdbc-java libmysql-java && \
     apt-get clean;
 
 # Set environment variables for Spark
@@ -14,11 +14,18 @@ ENV PATH=$PATH:$SPARK_HOME/bin
 ENV SPARK_HISTORY_OPTS="-Dspark.history.ui.port=18080 -Dspark.eventLog.enabled=true -Dspark.eventLog.dir=/tmp/spark-events"
 ENV SPARK_NO_DAEMONIZE=TRUE
 
+# Create a directory for JDBC drivers
+RUN mkdir -p /opt/jdbc_drivers
+
+# Download JDBC Drivers for MSSQL, MySQL, and PostgreSQL
+RUN wget -O sqljdbc_12.4.2.0_enu.tar.gz https://go.microsoft.com/fwlink/?linkid=2247860
+RUN tar xzf sqljdbc_12.4.2.0_enu.tar.gz
+RUN mv sqljdbc_12.4.2.0_enu.tar.gz /opt/jdbc_drivers
+RUN rm sqljdbc_12.4.2.0_enu.tar.gz 
+
+# Setup Spark
 RUN mkdir -p /tmp/spark-events
 RUN chmod -R 777 /tmp/spark-events
-
-
-# Download and install Spark
 RUN wget -q https://downloads.apache.org/spark/spark-$SPARK_VERSION/spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz && \
     tar xzf spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION.tgz && \
     mv spark-$SPARK_VERSION-bin-hadoop$HADOOP_VERSION /spark && \
@@ -27,7 +34,7 @@ RUN wget -q https://downloads.apache.org/spark/spark-$SPARK_VERSION/spark-$SPARK
 # Install PySpark and Jupyter
 RUN pip3 install pyspark==$SPARK_VERSION jupyter
 
-# Expose the port Jupyter will run on
+# Expose ports for Jupyter and Spark UI
 EXPOSE 8888
 EXPOSE 4040
 EXPOSE 18080
@@ -41,3 +48,4 @@ COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
 CMD ["/bin/bash", "/start.sh"]
+
