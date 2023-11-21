@@ -1,0 +1,146 @@
+---
+- hosts: workers
+  become: yes
+  vars:
+    SPARK_VERSION: "3.5.0"
+    HADOOP_VERSION: "3"
+    SPARK_HOME: "/spark"
+    NFS_SERVER_IP: "192.168.50.235"
+    NFS_SHARE_DIR: "/sparkcluster/fileshare"
+    MOUNT_POINT: "/sparkcluster/fileshare"
+
+  tasks:
+    - name: Install Java
+      apt:
+        name: default-jdk
+        state: present
+
+    - name: Install Python and Pip
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - python3
+        - python3-pip
+
+    - name: Install NFS Common
+      apt:
+        name: nfs-common
+        state: present
+
+    - name: Create NFS Mount Point
+      file:
+        path: "{{ MOUNT_POINT }}"
+        state: directory
+        mode: '0777'
+
+    - name: Mount NFS Share
+      mount:
+        path: "{{ MOUNT_POINT }}"
+        src: "{{ NFS_SERVER_IP }}:{{ NFS_SHARE_DIR }}"
+        fstype: nfs
+        opts: defaults
+        state: mounted
+
+    - name: Add NFS Share to fstab
+      lineinfile:
+        path: /etc/fstab
+        line: "{{ NFS_SERVER_IP }}:{{ NFS_SHARE_DIR }} {{ MOUNT_POINT }} nfs defaults 0 0"
+        create: yes
+
+    - name: Create Spark events directory
+      file:
+        path: /tmp/spark-events
+        state: directory
+        mode: '0777'
+
+    - name: Ensure Spark directory exists with appropriate permissions
+      file:
+        path: "{{ SPARK_HOME }}"
+        state: directory
+        mode: '0777'
+
+    - name: Download Spark
+      get_url:
+        url: "https://downloads.apache.org/spark/spark-{{ SPARK_VERSION }}/spark-{{ SPARK_VERSION }}-bin-hadoop{{ HADOOP_VERSION }}.tgz"
+        dest: "/tmp/spark-{{ SPARK_VERSION }}-bin-hadoop{{ HADOOP_VERSION }}.tgz"
+      register: spark_download
+
+    - name: Extract Spark
+      unarchive:
+        src: "/tmp/spark-{{ SPARK_VERSION }}-bin-hadoop{{ HADOOP_VERSION }}.tgz"
+        dest: "{{ SPARK_HOME }}"
+        remote_src: yes
+        extra_opts: [--strip-components=1]
+      when: spark_download is changed
+
+    - name: Remove downloaded Spark tarball
+      file:
+        path: "/tmp/spark-{{ SPARK_VERSION }}-bin-hadoop{{ HADOOP_VERSION }}.tgz"
+        state: absent
+      when: spark_download is changed
+
+    - name: Install PySpark
+      pip:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "pyspark=={{ SPARK_VERSION }}"
+
+    - name: Set Spark environment variables globally
+      blockinfile:
+        path: /etc/profile
+        block: |
+          export SPARK_VERSION={{ SPARK_VERSION }}
+          export HADOOP_VERSION={{ HADOOP_VERSION }}
+          export SPARK_HOME={{ SPARK_HOME }}
+          export PATH=$PATH:$SPARK_HOME/bin
+        create: yes
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+
+    - name: Start Spark Worker
+      shell: "{{ SPARK_HOME }}/sbin/start-worker.sh spark://{{ lookup('env','SPARK_MASTER_HOST') }}:7077"
+      environment:
+        SPARK_HOME: "{{ SPARK_HOME }}"
+
+    - name: Copy requirements.txt to all nodes
+      copy:
+        src: "{{ lookup('env', 'this_dir') }}/pyspark_requirements.txt"
+        dest: "/tmp/pyspark_requirements.txt"
+    - name: Install Python packages on all nodes
+      pip:
+        requirements: "/tmp/pyspark_requirements.txt"
+
+    - name: Check for existing swap file
+      command: swapon --show
+      register: swapon_output
+      changed_when: false
+      failed_when: false
+
+    - name: Create swap file
+      command: fallocate -l 10G /swapfile
+      when: swapon_output.stdout == ""
+
+    - name: Secure swap file
+      command: chmod 600 /swapfile
+      when: swapon_output.stdout == ""
+
+    - name: Set up swap space
+      command: mkswap /swapfile
+      when: swapon_output.stdout == ""
+
+    - name: Enable swap space
+      command: swapon /swapfile
+      when: swapon_output.stdout == ""
+
+    - name: Add swap to fstab
+      blockinfile:
+        path: /etc/fstab
+        block: |
+          /swapfile none swap sw
+    - name: Create a file in NFS share to validate functionality
+      copy:
+        content: "This is worker with IP {{ ansible_host }} validating NFS share access."
+        dest: "{{ MOUNT_POINT }}/worker_{{ ansible_host }}.txt"
+
+        

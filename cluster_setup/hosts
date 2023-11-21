@@ -1,0 +1,3 @@
+[workers]
+192.168.50.167 ansible_ssh_user=ubuntu
+192.168.50.166 ansible_ssh_user=don

@@ -1,0 +1,50 @@
+---
+- hosts: workers
+  become: yes
+  vars:
+    MOUNT_POINT: "/sparkcluster/fileshare"
+
+  tasks:
+    - name: Stop Spark Worker
+      shell: "/spark/sbin/stop-worker.sh"
+      ignore_errors: yes  # This is to prevent the playbook from failing if no worker is running
+
+    - name: Uninstall PySpark
+      pip:
+        name: pyspark
+        state: absent
+
+    - name: Remove Spark directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/spark"
+        - "/tmp/spark-events"
+
+    - name: Remove Spark environment variables from .bashrc
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        state: absent
+        regexp: '^export SPARK_'
+
+    - name: Disable all active swap
+      command: swapoff -a
+      ignore_errors: yes
+
+    - name: Remove swap entries from /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        regex: '^.*\s+none\s+swap\s+.*$'
+        state: absent
+
+    - name: Unmount NFS Share
+      mount:
+        path: "{{ MOUNT_POINT }}"
+        state: unmounted
+      ignore_errors: yes
+
+    - name: Remove NFS Mount Point
+      file:
+        path: "{{ MOUNT_POINT }}"
+        state: absent
