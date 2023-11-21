@@ -1,3 +1,4 @@
 # Ignore files named sample_data_to_transform.csv
 sample_data_to_transform.csv
 out/
+secret.yml

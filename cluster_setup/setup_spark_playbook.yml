@@ -8,6 +8,8 @@
     NFS_SERVER_IP: "192.168.50.235"
     NFS_SHARE_DIR: "/sparkcluster/fileshare"
     MOUNT_POINT: "/sparkcluster/fileshare"
+  vars_files:
+    - secret.yml    
 
   tasks:
     - name: Install Java

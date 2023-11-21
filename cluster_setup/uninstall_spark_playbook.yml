@@ -3,6 +3,8 @@
   become: yes
   vars:
     MOUNT_POINT: "/sparkcluster/fileshare"
+  vars_files:
+    - secret.yml    
 
   tasks:
     - name: Stop Spark Worker

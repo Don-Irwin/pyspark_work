@@ -1,5 +1,5 @@
 #!/bin/bash
-
+source ./get_secret.sh
 echo "*******************************"
 echo "Setup an NFS Share"
 echo "*******************************"
@@ -208,7 +208,7 @@ pip install
 
 export this_dir=$(pwd)
 # Run Ansible Playbook
-ansible-playbook -i hosts setup_spark_playbook.yml --ask-become-pass
+ansible-playbook -i hosts setup_spark_playbook.yml 
 
 echo "*************************************"
 echo "completed"
