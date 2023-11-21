@@ -3,7 +3,7 @@ FROM openjdk:11-jre-slim
 
 # Install Python and necessary utilities
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip wget tree unixodbc unixodbc-dev libpostgresql-jdbc-java zstd sudo dpkg && \
+    apt-get install -y python3 python3-pip wget tree unixodbc unixodbc-dev libpostgresql-jdbc-java zstd sudo iputils-ping && \
     apt-get upgrade -y && \
     apt-get clean;
 
@@ -16,14 +16,18 @@ RUN mkdir -p /opt/jdbc_drivers
 # Download JDBC Drivers for MSSQL, MySQL
 RUN wget -O sqljdbc_12.4.2.0_enu.tar.gz https://go.microsoft.com/fwlink/?linkid=2247860
 RUN tar xzf sqljdbc_12.4.2.0_enu.tar.gz
-RUN mv sqljdbc_12.4.2.0_enu.tar.gz /opt/jdbc_drivers
-#RUN rm sqljdbc_12.4.2.0_enu.tar.gz 
+RUN mv sqljdbc_12.4 /usr/share/java/
+RUN rm sqljdbc_12.4.2.0_enu.tar.gz 
+RUN cp /usr/share/java/sqljdbc_12.4/enu/jars/mssql-jdbc-12.4.2.jre11.jar /spark/jars/
+
 #MYSQL
 COPY /mysql-connector-j_8.2.0-1ubuntu22.04_all_repacked.deb .
 RUN dpkg -i --force-overwrite mysql-connector-j_8.2.0-1ubuntu22.04_all_repacked.deb
 RUN rm mysql-connector-j_8.2.0-1ubuntu22.04_all_repacked.deb
+RUN cp /usr/share/java/mysql-connector-java-8.2.0.jar /spark/jars/
 
-RUN apt-get clean
+#POSTGRES
+RUN cp /usr/share/java/postgresql.jar /spark/jars/
 
 # Set environment variables for Spark
 ENV SPARK_VERSION=3.5.0

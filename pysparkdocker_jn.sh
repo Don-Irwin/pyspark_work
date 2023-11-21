@@ -4,6 +4,9 @@
 IMAGE_NAME="spark_pyspark_jupyter"
 CONTAINER_NAME="spark_pyspark_jupyter"
 DOCKERFILE_PATH="Dockerpyspark"
+NETWORK_NAME="ENTERPRISE_NETWORK1"
+export NETWORK_NAME=$NETWORK_NAME
+docker network create $NETWORK_NAME
 
 # Function to check if a Docker image exists
 check_image_exists() {
@@ -31,7 +34,7 @@ build_image() {
 # Function to run the Docker container
 run_container() {
     check_and_remove_container
-    docker run -p 8888:8888 -v "$PWD":/workspace -d --name ${CONTAINER_NAME} $IMAGE_NAME
+    docker run -p 8888:8888 -v "$PWD":/workspace -d --name ${CONTAINER_NAME} --network $NETWORK_NAME $IMAGE_NAME
 }
 
 # Main script logic
