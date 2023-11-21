@@ -1,5 +1,6 @@
 #!/bin/bash
 source ./get_secret.sh
+source ./env.sh
 echo "*******************************"
 echo "Setup an NFS Share"
 echo "*******************************"
