@@ -70,3 +70,11 @@ git clone https://github.com/Don-Irwin/pyspark_work && cd pyspark_work && . time
 
 ![Depdendencies](artifacts/images/time_results.png)
 
+
+
+### Setting Up a Pyspark Cluster From Scratch on three nodes
+
+
+```
+git clone https://github.com/Don-Irwin/pyspark_work && cd pyspark_work && . setup_env.sh && . setup_cluster_and_run_spark_job.sh
+```
